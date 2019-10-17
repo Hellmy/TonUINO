@@ -203,7 +203,7 @@ void setup() {
 
   // DFPlayer Mini initialisieren
   mp3.begin();
-  mp3.setVolume(15);
+  mp3.setVolume(10);
 
   // NFC Leser initialisieren
   SPI.begin();        // Init SPI bus
@@ -245,8 +245,11 @@ void loop() {
       ignorePauseButton = false;
     } else if (pauseButton.pressedFor(LONG_PRESS) &&
                ignorePauseButton == false) {
-      if (isPlaying())
+      if (isPlaying()) {
         mp3.playAdvertisement(currentTrack);
+        // Fortschritt zurück setzen
+        EEPROM.write(myCard.folder, 1);
+      }
       else {
         knownCard = false;
         mp3.playMp3FolderTrack(800);
@@ -259,24 +262,24 @@ void loop() {
     }
 
     if (upButton.pressedFor(LONG_PRESS)) {
-      Serial.println(F("Volume Up"));
-      mp3.increaseVolume();
+      nextTrack(random(65536));
       ignoreUpButton = true;
     } else if (upButton.wasReleased()) {
-      if (!ignoreUpButton)
-        nextTrack(random(65536));
-      else
+      if (!ignoreUpButton) {
+        Serial.println(F("Volume Up"));
+        mp3.increaseVolume();
+      } else
         ignoreUpButton = false;
     }
 
     if (downButton.pressedFor(LONG_PRESS)) {
-      Serial.println(F("Volume Down"));
-      mp3.decreaseVolume();
+      previousTrack();
       ignoreDownButton = true;
     } else if (downButton.wasReleased()) {
-      if (!ignoreDownButton)
-        previousTrack();
-      else
+      if (!ignoreDownButton) {
+        Serial.println(F("Volume Down"));
+        mp3.decreaseVolume();
+      } else
         ignoreDownButton = false;
     }
     // Ende der Buttons
